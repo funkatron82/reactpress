@@ -32,12 +32,12 @@ class CEDPR_Storage {
     $table_name = $wpdb->prefix . "reactionmeta";
     $sql = "CREATE TABLE $table_name (
       meta_id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			reaction_id bigint(20) UNSIGNED NOT NULL DEFAULT '0',
-			meta_key varchar(255) DEFAULT NULL,
-			meta_value longtext,
-			PRIMARY KEY  (meta_id),
-			KEY reaction_id (p2p_id),
-			KEY meta_key (meta_key)
+      reaction_id bigint(20) UNSIGNED NOT NULL DEFAULT '0',
+      meta_key varchar(255) DEFAULT NULL,
+      meta_value longtext,
+      PRIMARY KEY  (meta_id),
+      KEY reaction_id (p2p_id),
+      KEY meta_key (meta_key)
     ) $charset_collate;";
     dbDelta( $sql );
 

@@ -39,7 +39,7 @@ class CEDRP_Reaction{
     wp_cache_delete( $this->reaction_id, 'post_reactions' );
 
     //Delete meta
-    $reaction_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->reactionmeta WHERE reaction_id = %d ", $$this->reaction_id ) );
+    $reaction_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->reactionmeta WHERE reaction_id = %d ", $this->reaction_id ) );
     foreach ( $reaction_meta_ids as $mid )
       delete_metadata_by_mid( 'reaction', $mid );
 
@@ -66,7 +66,7 @@ class CEDRP_Reaction{
       if( ! $_reaction )
         return false;
 
-      wp_cache_set( $reaction_id, 'reactions' );
+      wp_cache_set( $reaction_id, $_reaction, 'reactions' );
     }
     return new CEDRP_Reaction( $_reaction );
   }

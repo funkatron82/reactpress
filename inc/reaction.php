@@ -44,10 +44,7 @@ class CEDRP_Reaction{
       delete_metadata_by_mid( 'reaction', $mid );
 
     //Delete db row
-    if( ! $result = $wpdb->delete( $wpdb->reactions, array( 'reaction_id' => $this->reaction_id ) ) )
-      return false;
-
-    return true;
+    return (bool) $wpdb->delete( $wpdb->reactions, array( 'reaction_id' => $this->reaction_id ) );
   }
 
   public static function get_instance( $reaction_id ) {

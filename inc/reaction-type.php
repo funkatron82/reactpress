@@ -67,7 +67,7 @@ class CEDRP_Reaction_Type {
     }
   }
 
-  function create_reaction( $object_id, $subject_id, $weight = null ) {
+  function react( $object_id, $subject_id, $weight = null ) {
     global $wpdb;
     $object  = $this->get_object( (int) $object_id );
     $subject = get_userdata( (int) $subject_id );
@@ -79,16 +79,49 @@ class CEDRP_Reaction_Type {
     $result = $wpdb->insert(
       $wpdb->reactions,
       array(
-        'object_id' => $object_id,
-        'subject_id' => $subject_id,
-        'reaction_weight' => $weight ),
-      array( '%d', '%d', '%d' ) );
+        'object_id'       => $object_id,
+        'subject_id'      => $subject_id,
+        'reaction_weight' => $weight,
+        'reaction_type'   => $this->name),
+      array( '%d', '%d', '%d' )
+    );
 
     if( $result ) {
       return CEDRP_Reaction::get_instance( $wpdb->insert_id );
     }
 
     return false;
+  }
+
+  function get_reaction_id( $object_id, $subject_id ) {
+    global $wpdb;
+    return $wpdb->get_var(
+      $wpdb->prepare(
+        "SELECT react_id
+          FROM $wpdb->reactions
+          WHERE object_id = %d
+            AND subject_id = %d
+            AND reaction_type = %s",
+        $object_id,
+        $subject_id,
+        $this->name
+    ) );
+  }
+
+  function delete_reaction( $object_id, $subject_id ) {
+    global $wpdb;
+    $object  = $this->get_object( (int) $object_id );
+    $subject = get_userdata( (int) $subject_id );
+
+    if( ! $object || ! $subject )
+      return false;
+
+    return (bool) $wpdb->delete(
+      $wpdb->reactions,
+      array(
+        'object_id' => $object_id,
+        'subject_id' => $subject_id ),
+      array( '%d', '%d' ) );
   }
 
   function get_object_reactions( $object ) {

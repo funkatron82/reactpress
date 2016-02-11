@@ -26,9 +26,25 @@ function get_object_reactions( $reaction_type, $object_id ) {
   return $type->get_object_reactions( $object_id );
 }
 
-function create_reaction( $reaction_type, $object_id, $subject_id, $weight = null ) {
+function react( $reaction_type, $object_id, $subject_id, $weight = null ) {
   $type = get_reaction_type_object( $reaction_type );
-  $type->create_reaction( $object_id, $subject_id, $weight );
+  $type->react( $object_id, $subject_id, $weight );
+}
+
+function delete_reaction( $reaction_type, $object_id, $subject_id ) {
+  $type = get_reaction_type_object( $reaction_type );
+  return $type->delete_reaction( $object_id, $subject_id );
+}
+
+function delete_reaction_by_id( $reaction_id ) {
+  $reaction = get_reaction( $reaction_id );
+  if( $reaction )
+    $reaction->delete();
+}
+
+function get_reaction_id( $reaction_type, $object_id, $subject_id ) {
+  $type = get_reaction_type_object( $reaction_type );
+  return $type->get_reaction_id( $object_id, $subject_id );
 }
 
 

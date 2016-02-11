@@ -71,9 +71,7 @@ class CEDRP_Storage {
 
     if( ! empty( $result ) ){
       foreach ( $result as $rid ){
-        $reaction = CEDRP_Reaction::get_instance( $rid );
-        if( $reaction )
-          $reaction->delete();
+        delete_reaction_by_id( $rid );
       }
     }
   }
@@ -102,11 +100,8 @@ class CEDRP_Storage {
     $result = $wpdb->get_col( $sql );
 
     if( ! empty( $result ) ){
-      foreach ( $result as $rid ) {
-        $reaction = CEDRP_Reaction::get_instance( $rid );
-        if( $reaction )
-          $reaction->delete();
-      }
+      foreach ( $result as $rid )
+        delete_reaction_by_id( $rid );
     }
   }
 }

@@ -119,8 +119,9 @@ class CEDRP_Reaction_Type {
     return (bool) $wpdb->delete(
       $wpdb->reactions,
       array(
-        'object_id' => $object_id,
-        'subject_id' => $subject_id ),
+        'object_id'     => $object_id,
+        'subject_id'    => $subject_id,
+        'reaction_type' => $this->name ),
       array( '%d', '%d' ) );
   }
 

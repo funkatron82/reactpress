@@ -9,11 +9,7 @@ function get_reaction( $reaction = NULL ){
     $_reaction = CEDRP_Reaction::get_instance( $reaction );
   }
 
-  if ( ! $_reaction ) {
-    return null;
-  }
-
-  return $_reaction;
+  return $_reaction ? $_reaction : null;
 }
 
 
@@ -45,6 +41,13 @@ function delete_reaction_by_id( $reaction_id ) {
 function get_reaction_id( $reaction_type, $object_id, $subject_id ) {
   $type = get_reaction_type_object( $reaction_type );
   return $type->get_reaction_id( $object_id, $subject_id );
+}
+
+function update_reaction( $reaction_type, $object_id, $subject_id, $weight ) {
+  $reaction_id = get_reaction_id( $reaction_type, $object_id, $subject_id );
+  if ( $reaction = get_reaction( $reaction_id ) ) {
+    $reaction->update( $weight );
+  }
 }
 
 

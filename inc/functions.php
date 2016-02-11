@@ -17,6 +17,21 @@ function get_reaction( $reaction = NULL ){
 }
 
 
+function get_reaction_type_object( $reaction_type ) {
+  return CEDRP_Reaction_Type::get_instance( $reaction_type );
+}
+
+function get_object_reactions( $reaction_type, $object_id ) {
+  $type = get_reaction_type_object( $reaction_type );
+  return $type->get_object_reactions( $object_id );
+}
+
+function create_reaction( $reaction_type, $object_id, $subject_id, $weight = null ) {
+  $type = get_reaction_type_object( $reaction_type );
+  $type->create_reaction( $object_id, $subject_id, $weight );
+}
+
+
 /**
  * Meta
  */

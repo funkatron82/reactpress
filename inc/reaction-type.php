@@ -70,7 +70,7 @@ class CEDRP_Reaction_Type {
   function create_reaction( $object_id, $subject_id, $weight = null ) {
     global $wpdb;
     $object  = $this->get_object( (int) $object_id );
-    $subject = get_user( (int) $subject_id );
+    $subject = get_userdata( (int) $subject_id );
 
     if( ! $object || ! $subject )
       return false;
@@ -87,12 +87,71 @@ class CEDRP_Reaction_Type {
     if( $result ) {
       return CEDRP_Reaction::get_instance( $wpdb->insert_id );
     }
+
+    return false;
+  }
+
+  function get_object_reactions( $object ) {
+    global $wpdb;
+    if ( ! $object = $this->get_object_id( $object ) )
+      return false;
+
+    $reactions = array();
+
+    $sql = $wpdb->prepare(
+      "SELECT reaction_id
+       FROM $wpdb->reactions
+       WHERE object_id = %d
+       AND reaction_type  = %s",
+       $object,
+       $this->name
+    );
+
+    $results = $wpdb->get_col( $sql );
+
+    if( ! empty( $results ) ){
+      foreach ( $results as $rid ){
+        if ( $reaction = CEDRP_Reaction::get_instance( $rid ) )
+          $reactions[] = $reaction;
+      }
+    }
+
+    return $reactions;
+  }
+
+  function get_subject_reactions ( $subject ) {
+    global $wpdb;
+    if ( ! subject = get_userdata( $subject ) )
+      return false;
+    $subject = $subject->ID;
+
+    $reactions = array();
+
+    $sql = $wpdb->prepare(
+      "SELECT reaction_id
+       FROM $wpdb->reactions
+       WHERE subject_id = %d
+       AND reaction_type  = %s",
+       $subject,
+       $this->name
+    );
+
+    $results = $wpdb->get_col( $sql );
+
+    if( ! empty( $results ) ){
+      foreach ( $results as $rid ){
+        if ( $reaction = CEDRP_Reaction::get_instance( $rid ) )
+          $reactions[] = $reaction;
+      }
+    }
+
+    return $reactions;
   }
 
   function get_object( $object_id ) {
     switch ( $this->object_options['type'] ) {
       case 'user':
-        return get_user( $object_id );
+        return get_userdata( $object_id );
         break;
       case 'comment':
         return get_comment( $object_id );
@@ -102,6 +161,22 @@ class CEDRP_Reaction_Type {
         return get_post( $object_id );
     }
   }
+
+  function get_object_id( $object ) {
+    if ( ! $object = $this->get_object( $object ) )
+      return false;
+
+      switch ( $this->object_options['type'] ) {
+        case 'comment':
+          return $object->comment_ID;
+          break;
+        case 'post':
+        case 'user':
+        default:
+          return $object->ID;
+      }
+  }
+
   static function register( $name, $args ) {
     self::$reaction_types[ $name ] = new CEDRP_Reaction_Type( $name, $args );
   }

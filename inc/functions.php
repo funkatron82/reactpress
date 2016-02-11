@@ -1,12 +1,12 @@
 <?php
 
 function get_reaction( $reaction = NULL ){
-  if ( $reaction instanceof CEDPR_Reaction ) {
+  if ( $reaction instanceof CEDRP_Reaction ) {
     $_reaction = $reaction;
   } elseif ( is_object( $reaction ) ) {
-    $_reaction = new CEDPR_Reaction( $reaction );
+    $_reaction = new CEDRP_Reaction( $reaction );
   } else {
-    $_reaction = CEDPR_Reaction::get_instance( $reaction );
+    $_reaction = CEDRP_Reaction::get_instance( $reaction );
   }
 
   if ( ! $_reaction ) {

@@ -1,11 +1,13 @@
 <?php
 
-class CEDPR_Storage {
+class CEDRP_Storage {
   static $version = 1;
   static function init() {
     self::create_tables();
-    add_action( 'deleted_post', array( __CLASS__, 'deleted_reaction_to' ) );
-    add_action( 'deleted_user', array( __CLASS__, 'deleted_reaction_from' ) );
+    add_action( 'deleted_post', array( __CLASS__, 'deleted_post_object' ) );
+    add_action( 'deleted_comment', array( __CLASS__, 'deleted_comment_object' ) );
+    add_action( 'deleted_user', array( __CLASS__, 'deleted_user_object' ) );
+    add_action( 'deleted_user', array( __CLASS__, 'deleted_subject' ) );
   }
 
   static function create_tables() {
@@ -21,13 +23,13 @@ class CEDPR_Storage {
       reaction_modified datetime DEFAULT NOW NOT NULL,
       reaction_type varchar(44) DEFAULT '' NOT NULL,
       reaction_weight int DEFAULT '1' NOT NULL,
-      reaction_to bigint(20) UNSIGNED NOT NULL,
-      reaction_from bigint(20) UNSIGNED NOT NULL,
+      object_id bigint(20) UNSIGNED NOT NULL,
+      subject_id bigint(20) UNSIGNED NOT NULL,
       PRIMARY KEY reaction_id (reaction_id),
-      UNIQUE KEY(reaction_type, reaction_to, reaction_from),
+      UNIQUE KEY(reaction_type, object_id, subject_id),
       KEY reaction_type (reaction_type),
-      KEY reaction_to (reaction_to),
-      KEY reaction_from (reaction_from)
+      KEY object_id (object_id),
+      KEY subject_id (subject_id)
     ) $charset_collate;";
     dbDelta( $sql );
 
@@ -45,36 +47,63 @@ class CEDPR_Storage {
     dbDelta( $sql );
   }
 
-  static function deleted_reaction_to( $post_id ){
+  static function deleted_object( $object_type, $object_id ) {
+    if( ! in_array( $object_type, array( 'post', 'user', 'comment' ) ) )
+      return false;
+
     global $wpdb;
-    $post_id = intval( $post_id );
-    $result = $wpdb->get_col(
+    $types = array();
+    foreach( CEDRP_Reaction_Type::$reaction_types as $name => $type ) {
+      if( $object_type === $type->object_options['type'] ) {
+        $types[] = $name;
+      }
+    }
+
+    $sql = $wpdb->prepare(
       "SELECT reaction_id
        FROM $wpdb->reactions
-       wHERE reaction_to = $post_id;"
+       WHERE object_id = %d
+       AND reaction_type IN (" . implode( ', ', array_fill( 0, count( $types ), '%s' ) ) . ")",
+       array_merge( (array) $object_id, $types )
     );
+
+    $result = $wpdb->get_col( $sql );
 
     if( ! empty( $result ) ){
       foreach ( $result as $rid ){
-        $reaction = CEDPR_Reaction::get_instance( $rid );
+        $reaction = CEDRP_Reaction::get_instance( $rid );
         if( $reaction )
           $reaction->delete();
       }
     }
   }
 
-  static function deleted_reaction_from( $user_id ){
+  static function deleted_post_object( $object_id ){
+    self::deleted_object( 'post', $object_id );
+  }
+
+  static function deleted_comment_object( $object_id ){
+    self::deleted_object( 'comment', $object_id );
+  }
+
+  static function deleted_user_object( $object_id ){
+    self::deleted_object( 'user', $object_id );
+  }
+
+  static function deleted_subject( $subject_id ){
     global $wpdb;
-    $user_id = intval( $user_id );
-    $result = $wpdb->get_col(
+
+    $sql = $wpdb->prepare(
       "SELECT reaction_id
        FROM $wpdb->reactions
-       wHERE reaction_from = $user_id;"
+       WHERE subject_id = %d ",
+       $subject_id
     );
+    $result = $wpdb->get_col( $sql );
 
     if( ! empty( $result ) ){
       foreach ( $result as $rid ) {
-        $reaction = CEDPR_Reaction::get_instance( $rid );
+        $reaction = CEDRP_Reaction::get_instance( $rid );
         if( $reaction )
           $reaction->delete();
       }

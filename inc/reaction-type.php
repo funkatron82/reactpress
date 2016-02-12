@@ -76,6 +76,12 @@ class CEDRP_Reaction_Type {
       return false;
 
     $weight = $this->validate_weight( $weight );
+    if ( $reaction_id = $this->get_reaction_id( $object_id, $subject_id ) ){
+      $reaction =  CEDRP_Reaction::get_instance( $reaction_id );
+      $reaction->update( $weight );
+      return $reaction;
+    }
+
     $result = $wpdb->insert(
       $wpdb->reactions,
       array(

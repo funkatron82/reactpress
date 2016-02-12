@@ -50,7 +50,6 @@ function update_reaction( $reaction_type, $object_id, $subject_id, $weight ) {
   }
 }
 
-
 /**
  * Meta
  */

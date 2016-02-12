@@ -23,10 +23,10 @@ class CEDRP_Reaction{
 
   public function update( $weight = 1 ) {
     global $wpdb;
-    $weight = $this->reaction_type->validate_weight( $weight );
-    $modified = current_time( 'mysql' );
+    $this->reaction_weight = empty( $weight ) ? $this->weight : $this->reaction_type->validate_weight( $weight );
+    $this->reaction_modified = current_time( 'mysql' );
     $wpdb->update( $wpdb->reactions,
-      array( 'reaction_weight' => $weight, 'reaction_modified' => $modified ),
+      array( 'reaction_weight' => $this->reaction_weight, 'reaction_modified' => $this->reaction_modified  ),
       array( 'reaction_id' => $this->reaction_id ),
       array( '%d', '%s' ),
       array( '%d' ) );

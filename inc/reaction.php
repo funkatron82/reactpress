@@ -30,6 +30,7 @@ class CEDRP_Reaction{
       array( 'reaction_id' => $this->reaction_id ),
       array( '%d', '%s' ),
       array( '%d' ) );
+    wp_cache_set( $this->reaction_id, $this, 'reactions' );
   }
 
   public function delete(){

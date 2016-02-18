@@ -49,33 +49,16 @@ class CEDRP_Reaction_Type {
     ) );
   }
 
-  function validate_weight( $weight ) {
-    switch ( $this->weight_options['type'] ) {
-      case 'vote':
-        return in_array( (int) $weight, array( -1, 1 ) ) ? (int) $weight : 1;
-        break;
-      case 'rating':
-        return filter_var( $weight, FILTER_VALIDATE_INT, array(
-          'default'   => $this->$weight_options['default'],
-          'min_range' => $this->$weight_options['min'],
-          'max_range' => $this->$weight_options['max']
-        ));
-        break;
-      case 'standard':
-      default:
-        return $this->weight_options['default'];
-    }
-  }
-
   function react( $object_id, $subject_id, $weight = null ) {
     global $wpdb;
-    $object  = $this->get_object( (int) $object_id );
-    $subject = get_userdata( (int) $subject_id );
+    $object_id  = $this->validate_object_id( $object_id );
+    $subject_id = $this->validate_subject_id( $subject_id );
 
-    if( ! $object || ! $subject )
+    if( ! $object_id || ! $subject_id )
       return false;
 
     $weight = $this->validate_weight( $weight );
+
     if ( $reaction_id = $this->get_reaction_id( $object_id, $subject_id ) ){
       $reaction =  CEDRP_Reaction::get_instance( $reaction_id );
       $reaction->update( $weight );
@@ -88,7 +71,7 @@ class CEDRP_Reaction_Type {
         'object_id'       => $object_id,
         'subject_id'      => $subject_id,
         'reaction_weight' => $weight,
-        'reaction_type'   => $this->name),
+        'reaction_type'   => $this->name ),
       array( '%d', '%d', '%d' )
     );
 
@@ -99,9 +82,15 @@ class CEDRP_Reaction_Type {
     return false;
   }
 
-  function get_reaction_id( $object_id, $subject_id ) {
+  function get_reaction( $object_id, $subject_id ) {
     global $wpdb;
-    return $wpdb->get_var(
+    $object_id  = $this->validate_object_id( $object_id );
+    $subject_id = $this->validate_subject_id( $subject_id );
+
+    if( ! $object_id || ! $subject_id )
+      return false;
+
+    $reaction_id = $wpdb->get_var(
       $wpdb->prepare(
         "SELECT react_id
           FROM $wpdb->reactions
@@ -112,14 +101,16 @@ class CEDRP_Reaction_Type {
         $subject_id,
         $this->name
     ) );
+
+    return CEDRP_Reaction::get_instance( $reaction_id );
   }
 
-  function delete_reaction( $object_id, $subject_id ) {
+  function delete_reaction( $object_id ) {
     global $wpdb;
-    $object  = $this->get_object( (int) $object_id );
-    $subject = get_userdata( (int) $subject_id );
+    $object_id  = $this->validate_object_id( $object_id );
+    $subject_id = $this->validate_subject_id( $subject_id );
 
-    if( ! $object || ! $subject )
+    if( ! $object_id || ! $subject_id )
       return false;
 
     return (bool) $wpdb->delete(
@@ -133,7 +124,7 @@ class CEDRP_Reaction_Type {
 
   function get_object_reactions( $object ) {
     global $wpdb;
-    if ( ! $object = $this->get_object_id( $object ) )
+    if ( ! $object_id  = $this->validate_object_id( $object_id ) )
       return false;
 
     $reactions = array();
@@ -143,7 +134,7 @@ class CEDRP_Reaction_Type {
        FROM $wpdb->reactions
        WHERE object_id = %d
        AND reaction_type  = %s",
-       $object,
+       $object_id,
        $this->name
     );
 
@@ -161,9 +152,8 @@ class CEDRP_Reaction_Type {
 
   function get_subject_reactions ( $subject ) {
     global $wpdb;
-    if ( ! subject = get_userdata( $subject ) )
+    if ( ! $subject_id = $this->validate_subject_id( $subject_id ) )
       return false;
-    $subject = $subject->ID;
 
     $reactions = array();
 
@@ -172,7 +162,7 @@ class CEDRP_Reaction_Type {
        FROM $wpdb->reactions
        WHERE subject_id = %d
        AND reaction_type  = %s",
-       $subject,
+       $subject_id,
        $this->name
     );
 
@@ -202,19 +192,40 @@ class CEDRP_Reaction_Type {
     }
   }
 
-  function get_object_id( $object ) {
-    if ( ! $object = $this->get_object( $object ) )
-      return false;
+  function validate_object_id( $object_id ) {
+    switch ( $this->object_options['type'] ) {
+      case 'user':
+        return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE ID = %d", $object_id ) );
+        break;
+      case 'comment':
+        return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->comments WHERE comment_ID = %d", $object_id ) );
+        break;
+      case 'post':
+      default:
+        return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE ID = %d", $object_id ) );
+    }
+  }
 
-      switch ( $this->object_options['type'] ) {
-        case 'comment':
-          return $object->comment_ID;
-          break;
-        case 'post':
-        case 'user':
-        default:
-          return $object->ID;
-      }
+  funnction validate_subject_id( $subject_id ) {
+    return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE ID = %d", $subject_id ) );
+  }
+
+  function validate_weight( $weight ) {
+    switch ( $this->weight_options['type'] ) {
+      case 'vote':
+        return in_array( (int) $weight, array( -1, 1 ) ) ? (int) $weight : 1;
+        break;
+      case 'rating':
+        return filter_var( $weight, FILTER_VALIDATE_INT, array(
+          'default'   => $this->$weight_options['default'],
+          'min_range' => $this->$weight_options['min'],
+          'max_range' => $this->$weight_options['max']
+        ));
+        break;
+      case 'standard':
+      default:
+        return $this->weight_options['default'];
+    }
   }
 
   static function register( $name, $args ) {

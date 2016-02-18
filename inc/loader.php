@@ -7,10 +7,10 @@ class CEDRP_Loader {
   }
 
   function define_constants() {
-  	define("CEDRP_VERSION", "1.0" );
-  	define('CEDRP_DIR', plugin_dir_path( __FILE__ ) );
+    define("CEDRP_VERSION", "1.0" );
+    define('CEDRP_DIR', plugin_dir_path( __FILE__ ) );
     define('CEDRP_INC_DIR', trailingslashit( CEDRP_DIR . 'inc' ) );
-  	define('CEDRP_URL',  plugin_dir_url( __FILE__ ));
+    define('CEDRP_URL',  plugin_dir_url( __FILE__ ));
     define('CEDRP_INC_URL', trailingslashit( CEDRP_URL . 'inc' ) );
   }
 

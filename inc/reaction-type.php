@@ -51,10 +51,8 @@ class CEDRP_Reaction_Type {
 
   function react( $object_id, $subject_id, $weight = null ) {
     global $wpdb;
-    $object_id  = $this->validate_object_id( $object_id );
-    $subject_id = $this->validate_subject_id( $subject_id );
 
-    if( ! $object_id || ! $subject_id )
+    if( ! $object_id  = $this->validate_object_id( $object_id ) || ! $subject_id = $this->validate_subject_id( $subject_id ) )
       return false;
 
     $weight = $this->validate_weight( $weight );
@@ -84,10 +82,7 @@ class CEDRP_Reaction_Type {
 
   function get_reaction( $object_id, $subject_id ) {
     global $wpdb;
-    $object_id  = $this->validate_object_id( $object_id );
-    $subject_id = $this->validate_subject_id( $subject_id );
-
-    if( ! $object_id || ! $subject_id )
+    if( ! $object_id  = $this->validate_object_id( $object_id ) || ! $subject_id = $this->validate_subject_id( $subject_id ) )
       return false;
 
     $reaction_id = $wpdb->get_var(
@@ -107,10 +102,7 @@ class CEDRP_Reaction_Type {
 
   function delete_reaction( $object_id ) {
     global $wpdb;
-    $object_id  = $this->validate_object_id( $object_id );
-    $subject_id = $this->validate_subject_id( $subject_id );
-
-    if( ! $object_id || ! $subject_id )
+    if( ! $object_id  = $this->validate_object_id( $object_id ) || ! $subject_id = $this->validate_subject_id( $subject_id ) )
       return false;
 
     return (bool) $wpdb->delete(
@@ -161,7 +153,7 @@ class CEDRP_Reaction_Type {
       "SELECT reaction_id
        FROM $wpdb->reactions
        WHERE subject_id = %d
-       AND reaction_type  = %s",
+        AND reaction_type  = %s",
        $subject_id,
        $this->name
     );
@@ -195,19 +187,22 @@ class CEDRP_Reaction_Type {
   function validate_object_id( $object_id ) {
     switch ( $this->object_options['type'] ) {
       case 'user':
-        return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE ID = %d", $object_id ) );
+        $result = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE ID = %d", $object_id ) );
         break;
       case 'comment':
-        return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->comments WHERE comment_ID = %d", $object_id ) );
+        $result = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->comments WHERE comment_ID = %d", $object_id ) );
         break;
       case 'post':
       default:
-        return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE ID = %d", $object_id ) );
+        $result = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE ID = %d", $object_id ) );
     }
+
+    return $result: $result : false;
   }
 
   funnction validate_subject_id( $subject_id ) {
-    return $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE ID = %d", $subject_id ) );
+    $result = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE ID = %d", $subject_id ) );
+    return $result: $result : false;
   }
 
   function validate_weight( $weight ) {
